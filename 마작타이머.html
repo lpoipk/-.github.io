@@ -23,6 +23,7 @@
             user-select: none;
         }
 
+        /* 4분할 격자 레이아웃 */
         .container {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -40,8 +41,8 @@
             overflow: hidden;
         }
 
-        
-        .p-top { transform: rotate(180deg); } 
+        /* 텍스트 방향 설정 (이미지 기준) */
+        .p-top { transform: rotate(180deg); } /* 상단 두 구역은 뒤집힘 */
         
         .content {
             display: flex;
@@ -54,11 +55,11 @@
         .timer { font-size: 3rem; font-family: monospace; font-weight: bold; }
         .penalty { font-size: 1.2rem; margin-top: 10px; }
         
-        
+        /* 활성화 상태 효과 */
         .active-bg { background-color: rgba(52, 168, 219, 0.05); }
         .active-text { color: #E74C3C; }
 
-        
+        /* 울어버려 버튼 (분홍색 부채꼴) */
         .cry-btn {
             position: absolute;
             width: 120px;
@@ -72,38 +73,38 @@
             z-index: 10;
             cursor: pointer;
         }
-
         
+        /* 동(東): 실제 화면 왼쪽 상단 모서리 */
         .box-0 .cry-btn { 
-            bottom: 0; 
-            right: 0; 
-            border-radius: 100% 0 0 0; 
+            top: 0; 
+            left: 0; 
+            border-radius: 100% 0 0 0; /* 회전 기준 좌상단(실제 우하단)을 둥글게 */
             padding: 0 20px 20px 0;
         }
-        
+        /* 북(北): 실제 화면 오른쪽 상단 모서리 */
         .box-3 .cry-btn { 
-            bottom: 0; 
-            left: 0; 
-            border-radius: 0 100% 0 0; 
+            top: 0; 
+            right: 0; 
+            border-radius: 0 100% 0 0; /* 회전 기준 우상단(실제 좌하단)을 둥글게 */
             padding: 0 0 20px 20px;
         }
         
+        /* 남(南): 왼쪽 하단 모서리 */
         .box-1 .cry-btn { 
-            bottom: 0; 
-            left: 0; 
+            top: 0; 
+            right: 0; 
             border-radius: 0 100% 0 0; 
             padding: 0 0 20px 20px; 
         }
-        
+        /* 서(西): 오른쪽 하단 모서리 */
         .box-2 .cry-btn { 
-            bottom: 0; 
-            right: 0; 
+            top: 0; 
+            left: 0; 
             border-radius: 100% 0 0 0; 
             padding: 0 20px 20px 0; 
         }
-        
 
-        
+        /* 중앙 시작 버튼 */
         .center-ui {
             position: absolute;
             top: 50%; left: 50%;
@@ -215,14 +216,16 @@
 
     function handleAreaTap(idx) {
         if (!isRunning || activePlayer === -1) return;
+        // 터치 시 다음 사람(반시계 방향: 동0->남1->서2->북3)으로 이동
         timers[activePlayer] = 25; 
         activePlayer = (activePlayer + 1) % 4;
         updateDisplay();
     }
 
     function handleCry(event, idx) {
-        event.stopPropagation(); 
-        if (!isRunning) return;        
+        event.stopPropagation(); // 영역 터치 이벤트 방지
+        if (!isRunning) return;
+        // 누른 사람으로 즉시 턴 변경
         timers[activePlayer] = 25;
         activePlayer = idx;
         updateDisplay();
@@ -249,4 +252,3 @@
 </script>
 </body>
 </html>
-
