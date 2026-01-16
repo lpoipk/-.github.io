@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>마작 타이머</title>
+    <style>
+        :root {
+            --bg-color: #FDFCF0;
+            --line-color: #333333;
+            --blue-color: #34A8DB;
+            --pink-color: #F7A8A8;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: "Noto Sans KR", sans-serif;
+            user-select: none;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .player-box {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 0.5px solid var(--line-color);
+            overflow: hidden;
+        }
+
+        
+        .p-top { transform: rotate(180deg); } 
+        
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .kanji { font-size: 5rem; margin-bottom: 5px; font-weight: 500; }
+        .timer { font-size: 3rem; font-family: monospace; font-weight: bold; }
+        .penalty { font-size: 1.2rem; margin-top: 10px; }
+        
+        
+        .active-bg { background-color: rgba(52, 168, 219, 0.05); }
+        .active-text { color: #E74C3C; }
+
+        
+        .cry-btn {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            background-color: var(--pink-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        
+        .box-0 .cry-btn { 
+            bottom: 0; 
+            right: 0; 
+            border-radius: 100% 0 0 0; 
+            padding: 0 20px 20px 0;
+        }
+        
+        .box-3 .cry-btn { 
+            bottom: 0; 
+            left: 0; 
+            border-radius: 0 100% 0 0; 
+            padding: 0 0 20px 20px;
+        }
+        
+        .box-1 .cry-btn { 
+            bottom: 0; 
+            left: 0; 
+            border-radius: 0 100% 0 0; 
+            padding: 0 0 20px 20px; 
+        }
+        
+        .box-2 .cry-btn { 
+            bottom: 0; 
+            right: 0; 
+            border-radius: 100% 0 0 0; 
+            padding: 0 20px 20px 0; 
+        }
+        
+
+        
+        .center-ui {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90px; height: 90px;
+            background-color: white;
+            border: 8px solid var(--blue-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            cursor: pointer;
+        }
+
+        .play-icon {
+            width: 0; height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 25px solid var(--blue-color);
+            margin-left: 8px;
+        }
+
+        .pause-icon {
+            width: 25px; height: 30px;
+            display: flex; justify-content: space-between;
+        }
+        .pause-icon div { width: 8px; height: 100%; background-color: var(--blue-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="box-0" class="player-box box-0 p-top" onclick="handleAreaTap(0)">
+        <div class="cry-btn" onclick="handleCry(event, 0)">울어버려</div>
+        <div class="content">
+            <div class="kanji">동</div>
+            <div id="timer-0" class="timer">00:25</div>
+            <div id="penalty-0" class="penalty">패널티 : 0</div>
+        </div>
+    </div>
+    <div id="box-3" class="player-box box-3 p-top" onclick="handleAreaTap(3)">
+        <div class="cry-btn" onclick="handleCry(event, 3)">울어버려</div>
+        <div class="content">
+            <div class="kanji">북</div>
+            <div id="timer-3" class="timer">00:25</div>
+            <div id="penalty-3" class="penalty">패널티 : 0</div>
+        </div>
+    </div>
+
+    <div id="box-1" class="player-box box-1" onclick="handleAreaTap(1)">
+        <div class="cry-btn" onclick="handleCry(event, 1)">울어버려</div>
+        <div class="content">
+            <div class="kanji">남</div>
+            <div id="timer-1" class="timer">00:25</div>
+            <div id="penalty-1" class="penalty">패널티 : 0</div>
+        </div>
+    </div>
+    <div id="box-2" class="player-box box-2" onclick="handleAreaTap(2)">
+        <div class="cry-btn" onclick="handleCry(event, 2)">울어버려</div>
+        <div class="content">
+            <div class="kanji">서</div>
+            <div id="timer-2" class="timer">00:25</div>
+            <div id="penalty-2" class="penalty">패널티 : 0</div>
+        </div>
+    </div>
+</div>
+
+<div class="center-ui" onclick="toggleGame()">
+    <div id="btn-icon" class="play-icon"></div>
+</div>
+
+<script>
+    let timers = [25, 25, 25, 25];
+    let penalties = [0, 0, 0, 0];
+    let activePlayer = -1;
+    let isRunning = false;
+    let timerId = null;
+
+    function toggleGame() {
+        isRunning = !isRunning;
+        const icon = document.getElementById('btn-icon');
+        if (isRunning) {
+            icon.className = 'pause-icon';
+            icon.innerHTML = '<div></div><div></div>';
+            if (activePlayer === -1) activePlayer = 0; // 동부터 시작
+            runTimer();
+        } else {
+            icon.className = 'play-icon';
+            icon.innerHTML = '';
+            clearInterval(timerId);
+        }
+    }
+
+    function runTimer() {
+        clearInterval(timerId);
+        timerId = setInterval(() => {
+            if (activePlayer !== -1) {
+                timers[activePlayer]--;
+                if (timers[activePlayer] < 0) {
+                    penalties[activePlayer]++;
+                    timers[activePlayer] = 25;
+                }
+                updateDisplay();
+            }
+        }, 1000);
+    }
+
+    function handleAreaTap(idx) {
+        if (!isRunning || activePlayer === -1) return;
+        timers[activePlayer] = 25; 
+        activePlayer = (activePlayer + 1) % 4;
+        updateDisplay();
+    }
+
+    function handleCry(event, idx) {
+        event.stopPropagation(); 
+        if (!isRunning) return;        
+        timers[activePlayer] = 25;
+        activePlayer = idx;
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        for (let i = 0; i < 4; i++) {
+            const tEl = document.getElementById(`timer-${i}`);
+            const pEl = document.getElementById(`penalty-${i}`);
+            const bEl = document.getElementById(`box-${i}`);
+            
+            tEl.innerText = `00:${timers[i].toString().padStart(2, '0')}`;
+            pEl.innerText = `패널티 : ${penalties[i]}`;
+            
+            if (i === activePlayer) {
+                bEl.classList.add('active-bg');
+                tEl.classList.add('active-text');
+            } else {
+                bEl.classList.remove('active-bg');
+                tEl.classList.remove('active-text');
+            }
+        }
+    }
+</script>
+</body>
+</html>
+
